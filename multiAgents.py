@@ -117,7 +117,7 @@ class ReflexAgent(Agent):
         """
         return -10 * len(foodGrid.asList()) 
     
-    
+
 def scoreEvaluationFunction(currentGameState: GameState):
     """
     This default evaluation function just returns the score of the state.
@@ -150,7 +150,7 @@ class MultiAgentSearchAgent(Agent):
 
 class MinimaxAgent(MultiAgentSearchAgent):
     """
-    Your minimax agent (question 2)
+    Your minimax agent (question 2).
     """
 
     def getAction(self, gameState: GameState):
@@ -158,26 +158,98 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns the minimax action from the current gameState using self.depth
         and self.evaluationFunction.
 
-        Here are some method calls that might be useful when implementing minimax.
-
-        gameState.getLegalActions(agentIndex):
-        Returns a list of legal actions for an agent
-        agentIndex=0 means Pacman, ghosts are >= 1
-
-        gameState.generateSuccessor(agentIndex, action):
-        Returns the successor game state after an agent takes an action
-
-        gameState.getNumAgents():
-        Returns the total number of agents in the game
-
-        gameState.isWin():
-        Returns whether or not the game state is a winning state
-
-        gameState.isLose():
-        Returns whether or not the game state is a losing state
+        Steps:
+        1. Get all legal actions for Pacman (agent 0).
+        2. Compute minimax scores for each action by calling the minimax function.
+        3. Identify the action(s) with the maximum minimax score.
+        4. Return one of the best actions (randomly chosen if there's a tie).
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Step 1: Get legal moves for Pacman (agent 0)
+        legalMoves = gameState.getLegalActions(0)
+
+        # Step 2: Compute minimax scores for each action
+        scores = [self.minimax(1, 0, gameState.generateSuccessor(0, action)) for action in legalMoves]
+
+        # Step 3: Find the action(s) with the maximum score
+        bestScore = max(scores)
+        bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+
+        # Step 4: Choose randomly among the best actions
+        chosenIndex = random.choice(bestIndices)
+
+        return legalMoves[chosenIndex]
+
+    def minimax(self, agentIndex, depth, gameState: GameState):
+        """
+        The core minimax recursive function.
+
+        Steps:
+        1. Check for terminal conditions (win, lose, or depth limit reached).
+        2. If it's Pacman's turn, call maxValue to maximize the score.
+        3. If it's a ghost's turn, call minValue to minimize the score.
+        """
+        # Step 1: Check for terminal conditions
+        if gameState.isWin() or gameState.isLose() or depth == self.depth:
+            return self.evaluationFunction(gameState)
+
+        # Step 2: If it's Pacman's turn, maximize the score
+        if agentIndex == 0:
+            return self.maxValue(agentIndex, depth, gameState)
+
+        # Step 3: If it's a ghost's turn, minimize the score
+        return self.minValue(agentIndex, depth, gameState)
+
+    def maxValue(self, agentIndex, depth, gameState: GameState):
+        """
+        Calculates the maximum value for Pacman's turn.
+
+        Steps:
+        1. Get all legal actions for Pacman.
+        2. If there are no legal actions, return the state's evaluation score.
+        3. For each action, compute the minimax value of the successor state.
+        4. Return the maximum value among all successor states.
+        """
+        # Step 1: Get legal actions for Pacman
+        legalActions = gameState.getLegalActions(agentIndex)
+
+        # Step 2: Check for terminal conditions (no legal actions)
+        if not legalActions:
+            return self.evaluationFunction(gameState)
+
+        # Step 3: Compute minimax values for all successor states
+        scores = [self.minimax(1, depth, gameState.generateSuccessor(agentIndex, action)) for action in legalActions]
+
+        # Step 4: Return the maximum score
+        return max(scores)
+
+    def minValue(self, agentIndex, depth, gameState: GameState):
+        """
+        Calculates the minimum value for the ghosts' turn.
+
+        Steps:
+        1. Get all legal actions for the current ghost.
+        2. If there are no legal actions, return the state's evaluation score.
+        3. Determine the next agent and depth (handle ghost and Pacman turns).
+        4. For each action, compute the minimax value of the successor state.
+        5. Return the minimum value among all successor states.
+        """
+        # Step 1: Get legal actions for the ghost
+        legalActions = gameState.getLegalActions(agentIndex)
+
+        # Step 2: Check for terminal conditions (no legal actions)
+        if not legalActions:
+            return self.evaluationFunction(gameState)
+
+        # Step 3: Determine the next agent and depth
+        nextAgent = (agentIndex + 1) % gameState.getNumAgents()
+        nextDepth = depth + 1 if nextAgent == 0 else depth
+
+        # Step 4: Compute minimax values for all successor states
+        scores = [self.minimax(nextAgent, nextDepth, gameState.generateSuccessor(agentIndex, action)) for action in legalActions]
+
+        # Step 5: Return the minimum score
+        return min(scores)
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
