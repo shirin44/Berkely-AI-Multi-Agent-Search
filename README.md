@@ -1,6 +1,6 @@
 # **Multi-Agent Pacman Search**
 
-### **Author**: [Your Name]
+### **Author**: Shirin Shujaa
 
 This project is based on UC Berkeley’s Pacman AI framework and implements multi-agent search strategies to balance immediate rewards and long-term planning in adversarial and stochastic environments. It includes Reflex Agents, Minimax, Alpha-Beta Pruning, Expectimax, and enhanced evaluation functions to optimize Pacman’s gameplay.
 
