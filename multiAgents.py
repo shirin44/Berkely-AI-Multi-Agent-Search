@@ -253,15 +253,90 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
-    Your minimax agent with alpha-beta pruning (question 3)
+    Alpha-Beta Pruning agent.
     """
 
     def getAction(self, gameState: GameState):
         """
-        Returns the minimax action using self.depth and self.evaluationFunction
+        Returns the best action for Pacman using alpha-beta pruning.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Step 1: Initialize alpha and beta to negative and positive infinity, respectively.
+        alpha = float('-inf')
+        beta = float('inf')
+        bestAction = None
+
+        # Step 2: Iterate through all legal actions for Pacman (agent 0).
+        for action in gameState.getLegalActions(0):
+            # Step 3: Compute the value of the successor state using the minValue function.
+            value = self.minValue(1, 0, gameState.generateSuccessor(0, action), alpha, beta)
+            
+            # Step 4: Update alpha and bestAction if the computed value is greater than alpha.
+            if value > alpha:
+                alpha = value
+                bestAction = action
+
+        # Step 5: Return the action that maximizes Pacman's utility.
+        return bestAction
+
+    def maxValue(self, agentIndex, depth, gameState, alpha, beta):
+        """
+        Handles the maximizing player (Pacman).
+        """
+        # Step 1: Check terminal conditions (win, lose, or depth reached).
+        if gameState.isWin() or gameState.isLose() or depth == self.depth:
+            return self.evaluationFunction(gameState)
+
+        # Step 2: Initialize the value to negative infinity.
+        value = float('-inf')
+
+        # Step 3: Iterate through all legal actions for the maximizing player (Pacman).
+        for action in gameState.getLegalActions(agentIndex):
+            # Step 4: Compute the minimum value of the successor state.
+            value = max(value, self.minValue(1, depth, gameState.generateSuccessor(agentIndex, action), alpha, beta))
+            
+            # Step 5: Prune branches if the value exceeds beta (no need to explore further).
+            if value > beta:
+                return value
+            
+            # Step 6: Update alpha to the maximum of its current value and the computed value.
+            alpha = max(alpha, value)
+
+        # Step 7: Return the computed value for Pacman.
+        return value
+
+    def minValue(self, agentIndex, depth, gameState, alpha, beta):
+        """
+        Handles the minimizing player (ghosts).
+        """
+        # Step 1: Check terminal conditions (win, lose).
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+
+        # Step 2: Initialize the value to positive infinity.
+        value = float('inf')
+
+        # Step 3: Determine the next agent and depth.
+        nextAgent = (agentIndex + 1) % gameState.getNumAgents()
+        nextDepth = depth + 1 if nextAgent == 0 else depth
+
+        # Step 4: Iterate through all legal actions for the minimizing player (ghosts).
+        for action in gameState.getLegalActions(agentIndex):
+            # Step 5: Compute the value for the next agent.
+            if nextAgent == 0:  # If the next agent is Pacman (maximizing player)
+                value = min(value, self.maxValue(nextAgent, nextDepth, gameState.generateSuccessor(agentIndex, action), alpha, beta))
+            else:  # If the next agent is another ghost (minimizing player)
+                value = min(value, self.minValue(nextAgent, nextDepth, gameState.generateSuccessor(agentIndex, action), alpha, beta))
+            
+            # Step 6: Prune branches if the value is less than alpha (no need to explore further).
+            if value < alpha:
+                return value
+            
+            # Step 7: Update beta to the minimum of its current value and the computed value.
+            beta = min(beta, value)
+
+        # Step 8: Return the computed value for the ghost player.
+        return value
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
